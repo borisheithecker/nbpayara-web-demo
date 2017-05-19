@@ -5,8 +5,6 @@
  */
 package org.nbpayara.web.demo;
 
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.PostConstruct;
 import javax.ejb.ActivationConfigProperty;
 import javax.ejb.MessageDriven;
@@ -31,7 +29,6 @@ import org.primefaces.push.EventBusFactory;
 public class MessagesJMSListener implements MessageListener {
 
     private EventBus eventBus;
-    private final static String CHANNEL = "/{room}/";
 
     public MessagesJMSListener() {
     }
@@ -46,7 +43,7 @@ public class MessagesJMSListener implements MessageListener {
         try {
             if (msg.isBodyAssignableTo(MessageEvent.class)) {
                 MessageEvent mb = msg.getBody(MessageEvent.class);
-                eventBus.publish(CHANNEL + "*", mb.getMessage());
+                eventBus.publish("/nb/*", mb.getMessage());
             }
         } catch (JMSException ex) {
         }

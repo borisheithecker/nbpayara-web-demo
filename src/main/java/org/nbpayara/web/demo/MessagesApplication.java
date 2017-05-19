@@ -6,10 +6,11 @@
 package org.nbpayara.web.demo;
 
 import java.io.Serializable;
+import java.text.MessageFormat;
+import java.util.List;
 import javax.ejb.EJB;
 import javax.faces.application.FacesMessage;
 import javax.faces.bean.ManagedBean;
-import javax.faces.bean.ManagedProperty;
 import javax.faces.bean.ViewScoped;
 import javax.faces.context.FacesContext;
 import org.nbpayara.demo.beans.Message;
@@ -27,32 +28,10 @@ public class MessagesApplication implements Serializable {
 
     @EJB
     private Messages messages;
-
     private final EventBus eventBus = EventBusFactory.getDefault().eventBus();
-
-    @ManagedProperty("#{appUsers}")
-    private AppUsers users;
     private String message;
     private String username;
     private boolean loggedIn;
-    private String user;
-    private final static String CHANNEL = "/{room}/";
-
-    public AppUsers getUsers() {
-        return users;
-    }
-
-    public void setUsers(AppUsers users) {
-        this.users = users;
-    }
-
-    public String getPrivateUser() {
-        return user;
-    }
-
-    public void setPrivateUser(String privateUser) {
-        this.user = privateUser;
-    }
 
     public String getGlobalMessage() {
         return message;
@@ -80,34 +59,36 @@ public class MessagesApplication implements Serializable {
 
     public void sendGlobal() {
         Message msg = new Message(username, message, System.currentTimeMillis());
-        //eventBus.publish(CHANNEL + "*", username + ": " + message);
-//        eventBus.publish(CHANNEL + "*", msg);
         messages.postMessage(msg);
         message = null;
     }
 
+    public List<String> getUsers() {
+        return messages.getUsers();
+    }
+
     public void login() {
         RequestContext requestContext = RequestContext.getCurrentInstance();
-
-        if (users.getUsers().contains(username)) {
+        if (messages.getUsers().contains(username)) {
             loggedIn = false;
-            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Username taken", "Try with another username."));
+            FacesContext.getCurrentInstance().addMessage(null, new FacesMessage(FacesMessage.SEVERITY_ERROR, "Username taken.", "Try with another username."));
             requestContext.update("growl");
         } else {
-            users.getUsers().add(username);
+            messages.addUser(username);
             requestContext.execute("PF('subscriber').connect('/" + username + "')");
             loggedIn = true;
         }
     }
 
     public void disconnect() {
+        RequestContext requestContext = RequestContext.getCurrentInstance();
         //remove user and update ui
-        users.getUsers().remove(username);
+        messages.removeUser(username);
         RequestContext.getCurrentInstance().update("form:users");
-
         //push leave information
-        eventBus.publish(CHANNEL + "*", username + " left the channel.");
-
+        String text = MessageFormat.format("{0} has left.", username);
+        eventBus.publish("/nb/*", new Message(null, text, System.currentTimeMillis()));
+        requestContext.execute("PF('subscriber').disconnect()");
         //reset state 
         loggedIn = false;
         username = null;

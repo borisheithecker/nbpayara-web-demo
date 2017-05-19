@@ -8,14 +8,14 @@
     <f:view contentType="text/html">
 
         <h:head>
-            
+
             <f:facet name="first">
                 <meta content='text/html; charset=UTF-8' http-equiv="Content-Type"/>
                 <title>NbPayara Demo</title>
             </f:facet>
 
             <style type="text/css">
-                
+
                 .messageInput {
                     width:400px;
                 }
@@ -57,7 +57,9 @@
 
         <h:body>
             <h:form id="form">
-                
+
+                <p:growl id="growl" showDetail="true" />
+
                 <p:remoteCommand name="updateList" update="users" process="@this" />
 
                 <p:fieldset id="container" legend="NbPayara Demo" toggleable="true"> 
@@ -67,7 +69,7 @@
                         <h:panelGrid columns="2" columnClasses="publicColumn,usersColumn" style="width:100%">
                             <p:outputPanel id="public" layout="block" styleClass="ui-corner-all ui-widget-content chatlogs" />
 
-                            <p:dataList id="users" var="user" value="#{appUsers.users}" styleClass="usersList">
+                            <p:dataList id="users" var="user" value="#{messagesApplication.getUsers()}" styleClass="usersList">
                                 <f:facet name="header">
                                     Users
                                 </f:facet>                                        
@@ -97,7 +99,7 @@
 
             </h:form>
 
-            <p:socket onMessage="handleMessage" channel="/{room}" autoConnect="false" widgetVar='subscriber' />
+            <p:socket onMessage="handleMessage" channel="/nb" autoConnect="false" widgetVar='subscriber' />
 
             <script type="text/javascript">
                 function handleMessage(message) {

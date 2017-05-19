@@ -12,8 +12,6 @@ import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import org.nbpayara.demo.beans.Message;
 import org.nbpayara.demo.beans.MessageEvent;
-import org.primefaces.push.EventBus;
-import org.primefaces.push.EventBusFactory;
 
 /**
  *
@@ -24,14 +22,28 @@ public class Messages {
 
     @EJB
     private MessagesNotificator notificator;
-    private EventBus eventBus;
     private List<Message> messages;
-    private final static String CHANNEL = "/{room}/";
+    private List<String> users;
 
     @PostConstruct
     public void init() {
-        eventBus = EventBusFactory.getDefault().eventBus();
         messages = new ArrayList<>();
+        users = new ArrayList<>();
+    }
+
+    public List<String> getUsers() {
+        return new ArrayList<>(users);
+    }
+
+    public boolean addUser(String username) {
+        if (users.contains(username)) {
+            return false;
+        }
+        return users.add(username);
+    }
+
+    public boolean removeUser(String username) {
+        return users.remove(username);
     }
 
     public List<Message> getMessages() {
@@ -42,4 +54,5 @@ public class Messages {
         messages.add(msg);
         notificator.notityConsumers(new MessageEvent(msg));
     }
+
 }
